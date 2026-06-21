@@ -1,0 +1,94 @@
+/* Project 1 specific styles (kept light, on top of the global style.css) */
+
+h3 {
+    margin-top: 25px;
+    border-bottom: 2px solid #275CB2;
+    padding-bottom: 4px;
+}
+
+/* forms with several selects side by side */
+.inline-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+.inline-form label {
+    display: flex;
+    flex-direction: column;
+    font-size: 16px;
+}
+
+.inline-form select {
+    margin-top: 4px;
+    padding: 6px;
+    font-size: 16px;
+}
+
+/* the global button is 30% wide; inside an inline form make it auto-sized */
+.inline-form button {
+    width: auto;
+    padding: 0 25px;
+    margin: 0;
+    display: inline-block;
+}
+
+/* generated plots */
+.plot {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.plot img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* data preview / results tables */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.data-table {
+    border-collapse: collapse;
+    margin: 10px auto;
+    font-size: 15px;
+}
+
+.data-table th,
+.data-table td {
+    border: 1px solid #ddd;
+    padding: 6px 12px;
+    text-align: center;
+}
+
+.data-table thead th {
+    background-color: #275CB2;
+    color: white;
+}
+
+.data-table tbody tr:nth-child(even) {
+    background-color: #f4f7fb;
+}
+
+/* navigation links between the project pages */
+.nav-links {
+    display: flex;
+    justify-content: space-between;
+    margin: 30px 0 10px;
+}
+
+.nav-links a {
+    color: #275CB2;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.nav-links a:hover {
+    text-decoration: underline;
+}

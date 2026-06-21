@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'project1/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="box">
+    <div class="title-container">
+        <div class="title">Train a model</div>
+    </div>
+
+    <div class="main-text">
+        <p class="centered-text">
+            Detected problem type: <strong>{{ detected }}</strong>.
+            Pick a model and a test split, then train. The model is trained for
+            several values of its hyperparameter and evaluated on a held-out test set.
+        </p>
+
+        <form method="post" class="inline-form">
+            {% csrf_token %}
+            <label>Model:
+                <select name="model">
+                    <optgroup label="Classification">
+                        {% for m in models.classification %}
+                            <option value="{{ m.key }}" {% if m.key == selected.model %}selected{% endif %}>{{ m.label }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Regression">
+                        {% for m in models.regression %}
+                            <option value="{{ m.key }}" {% if m.key == selected.model %}selected{% endif %}>{{ m.label }}</option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+            </label>
+            <label>Test set size:
+                <select name="test_size">
+                    {% for v in test_sizes %}
+                        <option value="{{ v }}" {% if v == selected.test_size %}selected{% endif %}>{{ v }}%</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Train</button>
+        </form>
+
+        {% if results %}
+            <h3>Results &mdash; {{ results.model_label }}</h3>
+            <p class="centered-text">
+                Trained on {{ results.n_train }} samples, tested on {{ results.n_test }}.<br>
+                Best {{ results.metric }} on the test set:
+                <strong>{{ results.best.test }}</strong>
+                (at {{ results.param_name }} = {{ results.best.value }})
+            </p>
+
+            <div class="plot">
+                <img src="{{ results.plot_url }}?t={% now 'U' %}" alt="Score curve">
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>{{ results.param_name }}</th>
+                        <th>Train {{ results.metric }}</th>
+                        <th>Test {{ results.metric }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in results.rows %}
+                        <tr>
+                            <td>{{ row.value }}</td>
+                            <td>{{ row.train }}</td>
+                            <td>{{ row.test }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        <div class="nav-links">
+            <a href="{% url 'project1:explore' %}">&#8624; Back to the data</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}{% endblock script %}

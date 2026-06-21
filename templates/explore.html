@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'project1/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="box">
+    <div class="title-container">
+        <div class="title">Explore the dataset</div>
+    </div>
+
+    <div class="main-text">
+        <p class="centered-text">
+            <strong>{{ n_rows }}</strong> rows &middot;
+            <strong>{{ n_features }}</strong> features &middot;
+            target: <strong>{{ target_name }}</strong> &middot;
+            detected problem type: <strong>{{ problem_type }}</strong>
+        </p>
+
+        <h3>Data preview</h3>
+        <div class="table-wrapper">
+            {{ preview|safe }}
+        </div>
+
+        <h3>Visualise two features</h3>
+        <form method="get" class="inline-form">
+            <label>X axis:
+                <select name="x">
+                    {% for f in feature_names %}
+                        <option value="{{ f }}" {% if f == x_col %}selected{% endif %}>{{ f }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Y axis:
+                <select name="y">
+                    {% for f in feature_names %}
+                        <option value="{{ f }}" {% if f == y_col %}selected{% endif %}>{{ f }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Plot</button>
+        </form>
+
+        {% if plot_url %}
+            <div class="plot">
+                <img src="{{ plot_url }}?t={% now 'U' %}" alt="Scatter plot">
+            </div>
+        {% endif %}
+
+        <div class="nav-links">
+            <a href="{% url 'project1:index' %}">&#8624; Upload another dataset</a>
+            <a href="{% url 'project1:train' %}">Train a model &#8594;</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}{% endblock script %}
