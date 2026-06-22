@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load p2_extras %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'project2/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="p2">
+    <h1 class="p2-title">Project 2 — Explainability</h1>
+    <p class="p2-sub">Palmer Penguins · predict <strong>species</strong> from the
+        remaining features. Pick a model family and a sparsity level (&lambda;);
+        every section below reacts to your choice.</p>
+
+    <!-- Shared controls: model class + lambda slider (Tasks 1-3) -->
+    <form method="get" class="p2-controls" id="controls">
+        <fieldset>
+            <legend>Model class</legend>
+            <label>
+                <input type="radio" name="model_class" value="tree"
+                       {% if model_class == 'tree' %}checked{% endif %}
+                       onchange="this.form.submit()"> Decision Tree
+            </label>
+            <label>
+                <input type="radio" name="model_class" value="logreg"
+                       {% if model_class == 'logreg' %}checked{% endif %}
+                       onchange="this.form.submit()"> Logistic Regression
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Regularisation &lambda; = <span id="lamval">{{ lam }}</span></legend>
+            <input type="range" name="lam" min="0" max="0.05" step="0.001"
+                   value="{{ lam }}"
+                   oninput="document.getElementById('lamval').textContent = this.value"
+                   onchange="this.form.submit()">
+            <small>Selects the model maximising <em>acc<sub>test</sub> &minus;
+                &lambda;&middot;&Omega;(f)</em>.</small>
+        </fieldset>
+    </form>
+
+    <!-- Selected model summary -->
+    <section class="p2-card">
+        <h2>Selected model</h2>
+        <div class="p2-stats">
+            <div class="stat"><span class="num">{{ best.acc_test }}</span>
+                <span class="lbl">test accuracy</span></div>
+            <div class="stat"><span class="num">{{ best.omega }}</span>
+                <span class="lbl">{% if model_class == 'tree' %}leaves{% else %}non-zero coefficients{% endif %} (&Omega;)</span></div>
+            <div class="stat"><span class="num">{{ best.param }}</span>
+                <span class="lbl">{{ best.param_name }}</span></div>
+        </div>
+    </section>
+
+    <!-- Model visualisation (Task 1 / Task 3) -->
+    <section class="p2-card p2-figure">
+        <h2>{% if model_class == 'tree' %}Decision tree{% else %}Coefficients{% endif %}</h2>
+        <img src="{{ model_img }}?v={{ best.param }}-{{ lam }}"
+             alt="model visualisation">
+    </section>
+
+    <!-- Counterfactual region (Task 4) -->
+    <section class="p2-card">
+        <h2>Counterfactual explanations</h2>
+        <p class="p2-sub">Pick an example and a target species; we search locally
+            for the closest points the <strong>currently selected model</strong>
+            classifies as the target.</p>
+
+        <form method="get" class="cf-form">
+            <input type="hidden" name="model_class" value="{{ model_class }}">
+            <input type="hidden" name="lam" value="{{ lam }}">
+            <label>Example row
+                <input type="number" name="cf_index" min="0" max="{{ n_rows|add:'-1' }}"
+                       value="{{ cf_index }}">
+            </label>
+            <label>Target species
+                <select name="cf_target">
+                    {% for c in classes %}
+                        <option value="{{ c }}" {% if c == cf_target %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit" name="cf_run" value="1">Generate</button>
+        </form>
+
+        <div class="cf-query">
+            <strong>Selected example #{{ cf_index }}</strong> —
+            actual: <em>{{ cf_actual }}</em>,
+            model predicts: <em>{{ cf_pred }}</em>
+        </div>
+
+        {% if cf_ran %}
+            {% if cf_results %}
+            <table class="p2-table cf-table">
+                <thead>
+                    <tr>
+                        <th>distance</th>
+                        {% for f in features %}<th>{{ f }}</th>{% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="cf-original">
+                        <td>original</td>
+                        {% for f in features %}<td>{{ cf_x|get:f }}</td>{% endfor %}
+                    </tr>
+                    {% for r in cf_results %}
+                    <tr>
+                        <td>{{ r.distance }}</td>
+                        {% for f in features %}
+                            <td class="{% if r.features|get:f|get:'changed' %}cf-changed{% endif %}">
+                                {{ r.features|get:f|get:'value' }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <small>Found after {{ cf_rounds }} sampling round(s). Highlighted cells
+                differ from the original.</small>
+            {% else %}
+            <p class="cf-none">No counterfactuals found for target
+                <em>{{ cf_target }}</em> even after widening the search.</p>
+            {% endif %}
+        {% endif %}
+    </section>
+
+    <!-- Feature effect plots (Task 5) -->
+    <section class="p2-card p2-figure">
+        <h2>Feature effect plots</h2>
+        <p class="p2-sub">PDP and ALE for a numerical feature's effect on each
+            species' probability, under the <strong>currently selected model</strong>.</p>
+        <form method="get" class="cf-form">
+            <input type="hidden" name="model_class" value="{{ model_class }}">
+            <input type="hidden" name="lam" value="{{ lam }}">
+            <label>Numerical feature
+                <select name="fe_feature" onchange="this.form.submit()">
+                    {% for f in numeric_features %}
+                        <option value="{{ f }}" {% if f == fe_feature %}selected{% endif %}>{{ f }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </form>
+        <img src="{{ fe_img }}?v={{ model_class }}-{{ best.param }}-{{ fe_feature }}"
+             alt="PDP and ALE plots">
+        <small>ALE method for this model: <strong>{{ fe_method }}</strong>.</small>
+    </section>
+
+    <!-- Family table: every member and its acc / Omega -->
+    <section class="p2-card">
+        <h2>Model family</h2>
+        <table class="p2-table">
+            <thead>
+                <tr><th>{{ best.param_name }}</th><th>train acc</th>
+                    <th>test acc</th><th>&Omega;</th><th>acc&minus;&lambda;&Omega;</th></tr>
+            </thead>
+            <tbody>
+            {% for m in family %}
+                <tr class="{% if m.param == best.param %}is-best{% endif %}">
+                    <td>{{ m.param }}</td>
+                    <td>{{ m.acc_train }}</td>
+                    <td>{{ m.acc_test }}</td>
+                    <td>{{ m.omega }}</td>
+                    <td>{{ m.score }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

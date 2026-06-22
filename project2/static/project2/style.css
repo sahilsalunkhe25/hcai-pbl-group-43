@@ -1,0 +1,62 @@
+.p2 {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px;
+    font-family: system-ui, sans-serif;
+    color: #1c2733;
+}
+
+.p2-title { margin: 0 0 4px; font-size: 1.8rem; }
+.p2-sub { margin: 0 0 20px; color: #51606e; }
+
+.p2-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+.p2-controls fieldset {
+    border: 1px solid #d4dbe2;
+    border-radius: 10px;
+    padding: 12px 16px;
+    flex: 1 1 260px;
+}
+.p2-controls legend { font-weight: 600; padding: 0 6px; }
+.p2-controls label { display: inline-block; margin-right: 16px; }
+.p2-controls input[type="range"] { width: 100%; }
+.p2-controls small { color: #6b7884; display: block; margin-top: 6px; }
+
+.p2-card {
+    background: #fff;
+    border: 1px solid #e1e7ec;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 22px;
+    box-shadow: 0 1px 3px rgba(20, 40, 60, 0.05);
+}
+.p2-card h2 { margin: 0 0 14px; font-size: 1.2rem; }
+
+.p2-stats { display: flex; gap: 32px; flex-wrap: wrap; }
+.p2-stats .stat { display: flex; flex-direction: column; }
+.p2-stats .num { font-size: 1.9rem; font-weight: 700; color: #1769aa; }
+.p2-stats .lbl { color: #6b7884; font-size: 0.85rem; }
+
+.p2-table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+.p2-table th, .p2-table td {
+    border: 1px solid #e1e7ec;
+    padding: 6px 10px;
+    text-align: center;
+}
+.p2-table thead th { background: #f3f6f9; }
+.p2-table tr.is-best { background: #e7f3ff; font-weight: 600; }
+
+.p2-figure img { max-width: 100%; height: auto; border-radius: 8px; }
+
+.cf-form { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px; }
+.cf-form label { display: flex; flex-direction: column; font-size: 0.85rem; color: #51606e; gap: 4px; }
+.cf-form input, .cf-form select { padding: 6px 8px; border: 1px solid #cfd8e0; border-radius: 6px; }
+.cf-form button, .p2-controls button { padding: 8px 16px; border: none; border-radius: 6px; background: #1769aa; color: #fff; cursor: pointer; }
+.cf-query { margin: 8px 0 14px; padding: 8px 12px; background: #f3f6f9; border-radius: 6px; }
+.cf-table td.cf-changed { background: #fff2cc; font-weight: 600; }
+.cf-table tr.cf-original { background: #eef2f6; font-style: italic; }
+.cf-none { color: #a33; }

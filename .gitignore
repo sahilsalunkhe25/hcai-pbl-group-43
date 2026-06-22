@@ -129,6 +129,7 @@ celerybeat.pid
 
 # Project runtime artifacts (uploaded datasets / generated plots)
 media/project1/
+media/project2/
 
 # Environments
 .env
