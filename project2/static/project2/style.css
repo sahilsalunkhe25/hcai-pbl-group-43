@@ -1,0 +1,141 @@
+/* Project 2 specific styles (kept light, on top of the global style.css) */
+
+/* The shared .box is absolutely centered (position:absolute + translate(-50%,-50%)),
+   which works for project1's short pages but breaks once content is taller than the
+   viewport: the box's top edge ends up above y=0, which is above what the page can
+   ever scroll to. This page is a long single-scroll dashboard, so let it flow normally. */
+.box {
+    position: static;
+    top: auto;
+    left: auto;
+    transform: none;
+    margin: 30px auto;
+    max-width: 1100px;
+}
+
+h3 {
+    margin-top: 25px;
+    border-bottom: 2px solid #275CB2;
+    padding-bottom: 4px;
+}
+
+.region {
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #ccc;
+}
+
+.region:last-of-type {
+    border-bottom: none;
+}
+
+/* forms with several selects side by side */
+.inline-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+.inline-form label {
+    display: flex;
+    flex-direction: column;
+    font-size: 16px;
+}
+
+.inline-form select {
+    margin-top: 4px;
+    padding: 6px;
+    font-size: 16px;
+}
+
+.lambda-label {
+    min-width: 220px;
+}
+
+.lambda-label input[type="range"] {
+    margin-top: 6px;
+}
+
+/* the global button is 30% wide; inside an inline form make it auto-sized */
+.inline-form button {
+    width: auto;
+    padding: 0 25px;
+    margin: 0;
+    display: inline-block;
+}
+
+/* generated plots */
+.plot {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.plot img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* data preview / results tables */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.data-table {
+    border-collapse: collapse;
+    margin: 10px auto;
+    font-size: 15px;
+}
+
+.data-table th,
+.data-table td {
+    border: 1px solid #ddd;
+    padding: 6px 12px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.data-table thead th {
+    background-color: #275CB2;
+    color: white;
+}
+
+.data-table tbody tr:nth-child(even) {
+    background-color: #f4f7fb;
+}
+
+.cf-original {
+    font-weight: bold;
+    background-color: #eef2fa !important;
+}
+
+.cf-diff {
+    background-color: #fff3b0 !important;
+    font-weight: bold;
+}
+
+.cf-note {
+    font-size: 14px;
+    color: #555;
+}
+
+/* navigation links */
+.nav-links {
+    display: flex;
+    justify-content: space-between;
+    margin: 30px 0 10px;
+}
+
+.nav-links a {
+    color: #275CB2;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.nav-links a:hover {
+    text-decoration: underline;
+}

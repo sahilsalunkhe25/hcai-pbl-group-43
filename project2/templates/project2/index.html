@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'project2/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="box">
+    <div class="title-container">
+        <div class="title">Project 2: Explainability</div>
+    </div>
+
+    <div class="main-text">
+        <p class="centered-text">
+            Palmer Penguins dataset &middot; target: <strong>species</strong>
+            (Adelie / Chinstrap / Gentoo). Pick a model class and a
+            regularization strength &lambda;, then explore counterfactuals
+            and global feature effects for the resulting model.
+        </p>
+
+        <!-- ============================================================ -->
+        <!-- Region A (Tasks 1-3): model class + regularization slider    -->
+        <!-- ============================================================ -->
+        <section class="region">
+            <h3>Model &amp; regularization</h3>
+
+            <form method="get" class="inline-form">
+                <input type="hidden" name="feature" value="{{ selected_feature }}">
+                <input type="hidden" name="example" value="{{ selected_example_value }}">
+                <input type="hidden" name="target" value="{{ selected_target_value }}">
+
+                <label>Model class:
+                    <select name="model" onchange="this.form.submit()">
+                        <option value="tree" {% if model_class == "tree" %}selected{% endif %}>Decision Tree</option>
+                        <option value="logreg" {% if model_class == "logreg" %}selected{% endif %}>Logistic Regression (L1)</option>
+                    </select>
+                </label>
+
+                <label class="lambda-label">&lambda; = <span id="lam-val">{{ lam|floatformat:3 }}</span>
+                    <input type="range" name="lam" min="0" max="{{ lam_max }}" step="{{ lam_step }}"
+                           value="{{ lam }}"
+                           oninput="document.getElementById('lam-val').textContent = Number(this.value).toFixed(3)">
+                </label>
+
+                <button type="submit">Apply</button>
+            </form>
+
+            <p class="centered-text">
+                Selected: <strong>{{ model_label }}</strong>
+                {% if model_class == "tree" %}
+                    (max_leaf_nodes = {% if best.param %}{{ best.param }}{% else %}unconstrained{% endif %})
+                {% else %}
+                    (C = {{ best.param|floatformat:4 }})
+                {% endif %}
+                &middot; test accuracy: <strong>{{ best.test_acc|floatformat:3 }}</strong>
+                &middot; &Omega;(f) &mdash; {{ complexity_label }}: <strong>{{ best.complexity }}</strong>
+            </p>
+
+            <div class="plot">
+                <img src="{{ model_plot_url }}?t={% now 'U' %}" alt="{{ model_label }} visualization">
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Region B (Task 4): counterfactual explanations               -->
+        <!-- ============================================================ -->
+        <section class="region">
+            <h3>Counterfactual explanations</h3>
+            <p class="centered-text">
+                Uses the model selected above ({{ model_label }}, &lambda; = {{ lam|floatformat:3 }}).
+            </p>
+
+            <form method="get" class="inline-form">
+                <input type="hidden" name="model" value="{{ model_class }}">
+                <input type="hidden" name="lam" value="{{ lam }}">
+                <input type="hidden" name="feature" value="{{ selected_feature }}">
+
+                <label>Example x:
+                    <select name="example">
+                        <option value="">&mdash; select &mdash;</option>
+                        {% for choice in example_choices %}
+                            <option value="{{ choice.idx }}" {% if selected_example == choice.idx %}selected{% endif %}>{{ choice.label }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label>Target species:
+                    <select name="target">
+                        <option value="">&mdash; select &mdash;</option>
+                        {% for s in species_list %}
+                            <option value="{{ s }}" {% if selected_target == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <button type="submit">Find counterfactuals</button>
+            </form>
+
+            {% if cf_result %}
+                {% if cf_result.found %}
+                    <div class="table-wrapper">
+                        <table class="data-table cf-table">
+                            <thead>
+                                <tr>
+                                    <th>Row</th>
+                                    {% for f in cf_result.features %}<th>{{ f }}</th>{% endfor %}
+                                    <th>P(target)</th>
+                                    <th>Distance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="cf-original">
+                                    <td>original (x)</td>
+                                    {% for cell in cf_result.example_cells %}<td>{{ cell.value }}</td>{% endfor %}
+                                    <td>&mdash;</td>
+                                    <td>&mdash;</td>
+                                </tr>
+                                {% for row in cf_result.rows %}
+                                    <tr>
+                                        <td>counterfactual {{ forloop.counter }}</td>
+                                        {% for cell in row.cells %}
+                                            <td {% if cell.changed %}class="cf-diff"{% endif %}>{{ cell.value }}</td>
+                                        {% endfor %}
+                                        <td>{{ row.target_proba }}</td>
+                                        <td>{{ row.distance }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="centered-text cf-note">Highlighted cells differ from the original example.</p>
+                {% else %}
+                    <p class="centered-text">No counterfactual found for that target, even after growing the search. Try a different example or target species.</p>
+                {% endif %}
+            {% endif %}
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Region C (Task 5): feature effect plots (PDP + ALE)          -->
+        <!-- ============================================================ -->
+        <section class="region">
+            <h3>Feature effect plots</h3>
+            <p class="centered-text">
+                Uses the model selected above ({{ model_label }}, &lambda; = {{ lam|floatformat:3 }}).
+            </p>
+
+            <form method="get" class="inline-form">
+                <input type="hidden" name="model" value="{{ model_class }}">
+                <input type="hidden" name="lam" value="{{ lam }}">
+                <input type="hidden" name="example" value="{{ selected_example_value }}">
+                <input type="hidden" name="target" value="{{ selected_target_value }}">
+
+                <label>Feature:
+                    <select name="feature" onchange="this.form.submit()">
+                        {% for f in numeric_features %}
+                            <option value="{{ f }}" {% if f == selected_feature %}selected{% endif %}>{{ f }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="submit">Update</button>
+            </form>
+
+            <div class="plot">
+                <img src="{{ effects_plot_url }}?t={% now 'U' %}" alt="PDP and ALE for {{ selected_feature }}">
+            </div>
+
+            <p class="centered-text cf-note">
+                {% if model_class == "logreg" %}
+                    ALE uses the exact analytic derivative of the softmax output for this
+                    (linear-in-log-odds) model.
+                {% else %}
+                    ALE uses a finite-difference approximation here, since a decision
+                    tree's prediction function is piecewise-constant and has no
+                    derivative at the splits.
+                {% endif %}
+            </p>
+        </section>
+
+        <div class="nav-links">
+            <a href="{% url 'home:index' %}">&#8624; Back to the project hub</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}{% endblock script %}
